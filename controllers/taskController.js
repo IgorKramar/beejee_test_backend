@@ -16,19 +16,27 @@ exports.getTasks = async (req, res) => {
       ? [[sortField, sortOrder]]
       : [['id', 'ASC']];
 
+    // Получаем задачи для текущей страницы
     const { count, rows } = await Task.findAndCountAll({
       limit,
       offset,
       order,
     });
 
+    // Получаем общую статистику
+    const totalCompleted = await Task.count({ where: { status: true } });
+    const totalEdited = await Task.count({ where: { isEdited: true } });
+
     res.json({
       tasks: rows,
-      total: count,
+      totalTasks: count,
+      totalCompleted,
+      totalEdited,
       totalPages: Math.ceil(count / limit),
       currentPage: page,
     });
   } catch (e) {
+    console.error('Ошибка при получении задач:', e);
     res.status(500).json({ message: 'Ошибка получения задач' });
   }
 };
